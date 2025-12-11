@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리 아이 학습 성향 진단 테스트</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+/* [스타일 정의] 노션 스타일 기반 + 깔끔한 UI */
+:root {
+--bg-color: #ffffff;
+--text-color: #37352f;
+--primary-color: #ff7b00;
+--gray-light: #f7f7f5;
+--border-color: #e0e0e0;
+}
+
+    body {
+        font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        line-height: 1.6;
+        position: relative;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 500px;
+        padding: 40px 20px;
+        text-align: center;
+        position: relative;
+    }
+
+    /* 버튼 스타일 */
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 18px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background-color: white;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--text-color);
+        text-align: left;
+    }
+    .btn:hover {
+        background-color: var(--gray-light);
+        border-color: #999;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .btn-center { text-align: center; }
+
+    .btn-primary {
+        background-color: var(--text-color);
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        border: none;
+    }
+    .btn-primary:hover {
+        background-color: #555;
+        color: white;
+    }
+
+    /* 모드 선택 버튼 */
+    .mode-btn {
+        padding: 30px 20px;
+        margin-bottom: 20px;
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .mode-btn:hover, .mode-btn.selected {
+        border-color: var(--primary-color);
+        background-color: #f0f9ff;
+    }
+    .mode-title { font-size: 20px; font-weight: 800; display: block; margin-bottom: 8px; }
+    .mode-desc { font-size: 14px; color: #666; font-weight: normal; }
+
+    /* 화면 전환 */
+    .screen { display: none; opacity: 0; transition: opacity 0.5s; }
+    .active { display: block; opacity: 1; }
+
+    /* 타이포그래피 */
+    .title { font-size: 28px; font-weight: 800; margin-bottom: 10px; word-break: keep-all; }
+    .subtitle { font-size: 16px; color: #666; margin-bottom: 40px; }
+
+    /* 진행바 */
+    .progress-container {
+        width: 100%;
+        height: 6px;
+        background-color: var(--gray-light);
+        margin-bottom: 40px;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background-color: var(--text-color);
+        width: 0%;
+        transition: width 0.3s;
+    }
+
+    /* 질문 화면 */
+    .q-badge {
+        display: inline-block;
+        background: var(--gray-light);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #666;
+    }
+    .question-text {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 40px;
+        word-break: keep-all;
+    }
+
+    /* 결과 화면 & 블러 처리 */
+    .result-content-wrapper {
+        transition: filter 0.5s;
+    }
+    .blurred {
+        filter: blur(12px);
+        user-select: none;
+        pointer-events: none;
+        overflow: hidden;
+        opacity: 0.6; /* 살짝 투명하게 해서 더 안 보이게 */
+    }
+
+    /* 정보 입력 게이트 (오버레이) */
+    #gate-overlay {
+        display: none;
+        position: fixed; /* 화면 고정 */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85%;
+        max-width: 380px;
+        background: rgba(255, 255, 255, 0.95); /* 약간의 투명도 */
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        z-index: 9999;
+        text-align: center;
+        backdrop-filter: blur(5px); /* 배경 블러 효과 */
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .form-label { display: block; text-align: left; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #555; }
+    .form-input, .form-select {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    /* 결과 이미지 (노션 스타일) */
+    .result-img-container {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background-color: var(--gray-light);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--text-color);
+    }
+    .result-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .result-tag {
+        display: inline-block;
+        background-color: var(--text-color);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .result-title { font-size: 26px; font-weight: 800; margin-bottom: 10px; line-height: 1.3; }
+    .result-desc-box {
+        background-color: var(--gray-light);
+        padding: 24px;
+        border-radius: 16px;
+        text-align: left;
+        margin-bottom: 24px;
+    }
+    .box-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; }
+    .box-text { font-size: 15px; color: #444; margin: 0; white-space: pre-line; }
+
+    .recommend-box {
+        border: 2px solid var(--primary-color);
+        background-color: #f0f9ff;
+        padding: 24px;
+        border-radius: 16px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .rec-label { font-size: 14px; color: var(--primary-color); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+    .rec-program { font-size: 24px; font-weight: 800; color: #000; word-break: keep-all; }
+    .rec-sub { font-size: 14px; color: #666; margin-top: 8px; }
+
+    /* 점수 차트 스타일 */
+    .score-chart-box {
+        background-color: var(--gray-light);
+        padding: 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+    }
+    .score-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .score-item:last-child {
+        margin-bottom: 0;
+    }
+    .score-label {
+        width: 80px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        text-align: left;
+    }
+    .score-bar-container {
+        flex: 1;
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 0 10px;
+    }
+    .score-bar {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.8s ease;
+    }
+    .score-bar.t1 { background: linear-gradient(90deg, #6366f1, #818cf8); }
+    .score-bar.t2 { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .score-bar.t3 { background: linear-gradient(90deg, #10b981, #34d399); }
+    .score-bar.t4 { background: linear-gradient(90deg, #ec4899, #f472b6); }
+    .score-bar.t5 { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .score-value {
+        width: 35px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-color);
+        text-align: right;
+    }
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<div id="start-screen" class="screen active">
+    <h1 class="title">우리 아이<br>학습 성향 진단</h1>
+    <p class="subtitle">아이의 성적, '노력'이 아니라<br>'방법'이 문제일 수 있습니다.<br>20문항으로 정확한 해법을 찾아보세요.</p>
+    <div style="font-size: 60px; margin-bottom: 40px;">✏️</div>
+    <button class="btn btn-primary btn-center" onclick="startTest()">진단 시작하기</button>
+    <p style="font-size: 12px; color: #999; margin-top: 20px;">소요시간: 약 3분 | 총 20문항</p>
+</div>
+
+<div id="question-screen" class="screen">
+    <div class="progress-container">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="q-badge" id="q-number">Q1</div>
+    <div class="question-text" id="question">질문 텍스트</div>
+    <button class="btn" id="btn-a" onclick="selectOption('A')">A 옵션</button>
+    <button class="btn" id="btn-b" onclick="selectOption('B')">B 옵션</button>
+</div>
+
+<div id="mode-screen" class="screen">
+    <h1 class="title">진단이 완료되었습니다.<br>어떤 수업을 희망하시나요?</h1>
+    <p class="subtitle">희망하시는 수업 방식에 따라<br>최적화된 처방전을 발급해드립니다.</p>
+
+    <div class="mode-btn" onclick="selectMode('online')">
+        <span class="mode-title">💻 온라인 수업</span>
+        <span class="mode-desc">집에서 체계적인 관리와<br>습관을 잡고 싶어요.</span>
+    </div>
+
+    <div class="mode-btn" onclick="selectMode('offline')">
+        <span class="mode-title">🏫 오프라인 센터 수업</span>
+        <span class="mode-desc">현장에서 밀도 있는 관리와<br>즉각적인 피드백을 원해요.</span>
+    </div>
+</div>
+
+<div id="loading-screen" class="screen">
+    <div style="margin-top: 50%;">
+        <div style="font-size: 40px; margin-bottom: 20px;">🔄</div>
+        <h2 style="margin: 0;">데이터 분석 중...</h2>
+        <p style="color: #666;">아이의 성향과 학습 패턴을<br>정밀하게 분석하고 있습니다.</p>
+    </div>
+</div>
+
+<div id="result-screen" class="screen">
+
+    <div id="gate-overlay">
+        <div style="font-size: 30px; margin-bottom: 10px;">🔒</div>
+        <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 10px 0;">결과 분석 완료</h2>
+        <p style="color: #666; font-size: 13px; margin-bottom: 20px; line-height: 1.4;">상세한 진단 결과와 맞춤 처방을 확인하려면<br>기본 정보를 입력해주세요.</p>
+
+        <div style="text-align: left;">
+            <label class="form-label">학생 이름</label>
+            <input type="text" id="user-name" class="form-input" placeholder="예: 김철수">
+
+            <label class="form-label">학부모 연락처</label>
+            <input type="tel" id="user-phone" class="form-input" placeholder="예: 010-1234-5678">
+
+            <label class="form-label">학년</label>
+            <select id="user-grade" class="form-select">
+                <option value="" disabled selected>학년을 선택해주세요</option>
+                <option value="초1">초등학교 1학년</option>
+                <option value="초2">초등학교 2학년</option>
+                <option value="초3">초등학교 3학년</option>
+                <option value="초4">초등학교 4학년</option>
+                <option value="초5">초등학교 5학년</option>
+                <option value="초6">초등학교 6학년</option>
+                <option value="중1">중학교 1학년</option>
+                <option value="중2">중학교 2학년</option>
+                <option value="중3">중학교 3학년</option>
+                <option value="기타">기타</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary btn-center" style="margin-top: 5px;" onclick="unlockResult()">결과 확인하기</button>
+    </div>
+
+    <div id="result-content" class="result-content-wrapper blurred">
+        <div class="result-img-container">
+            <img id="result-img" class="result-img" src="" alt="결과 캐릭터">
+        </div>
+
+        <div class="result-tag" id="result-code">TYPE</div>
+        <h1 class="result-title" id="result-title">유형 이름</h1>
+        <p class="subtitle" id="result-quote" style="color: #333; font-style: italic;">"학부모 고민 멘트"</p>
+
+        <div class="score-chart-box">
+            <div class="box-title">📊 영역별 성향 분석</div>
+            <div class="score-item">
+                <span class="score-label">성실/순응</span>
+                <div class="score-bar-container"><div class="score-bar t1" id="bar-t1"></div></div>
+                <span class="score-value" id="val-t1">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">효율/회피</span>
+                <div class="score-bar-container"><div class="score-bar t2" id="bar-t2"></div></div>
+                <span class="score-value" id="val-t2">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">정확/신중</span>
+                <div class="score-bar-container"><div class="score-bar t3" id="bar-t3"></div></div>
+                <span class="score-value" id="val-t3">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">자기주도</span>
+                <div class="score-bar-container"><div class="score-bar t4" id="bar-t4"></div></div>
+                <span class="score-value" id="val-t4">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">속도/직관</span>
+                <div class="score-bar-container"><div class="score-bar t5" id="bar-t5"></div></div>
+                <span class="score-value" id="val-t5">0</span>
+            </div>
+        </div>
+
+        <div class="result-desc-box">
+            <div class="box-title">🔍 핵심 진단</div>
+            <p class="box-text" id="result-diagnosis">진단 내용</p>
+        </div>
+
+        <div class="result-desc-box">
+            <div class="box-title">💊 지금 필요한 공부</div>
+            <p class="box-text" id="result-prescription">처방 내용</p>
+        </div>
+
+        <div class="recommend-box">
+            <div class="rec-label">BEST SOLUTION</div>
+            <div class="rec-program" id="result-program">추천 반 이름</div>
+            <div class="rec-sub" id="result-sub-program">추천 옵션</div>
+        </div>
+
+        <button class="btn btn-primary btn-center" id="cta-button" onclick="goToConsult()">상담 신청하기</button>
+        <button class="btn btn-center" onclick="location.reload()" style="background:#f1f1ef; color:#666; font-weight:normal;">테스트 다시하기</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+// [데이터 1] 질문 20개
+const questions = [
+{ q: "문제를 풀 때 아이는 보통?", a: "끝까지 다 맞히려고 천천히 푼다", b: "일단 빨리 풀고 나중에 다시 본다", tA: "T3", tB: "T5" },
+{ q: "숙제할 때 아이의 모습은?", a: "시키는 대로 다 하긴 한다", b: "할 수는 있는데 자주 대충 한다", tA: "T1", tB: "T2" },
+{ q: "틀린 문제를 대하는 태도는?", a: "왜 틀렸는지 꼭 확인한다", b: "다시 안 나오면 그냥 넘어간다", tA: "T3", tB: "T2" },
+{ q: "선생님이 고쳐준 답을 아이는?", a: "다음엔 그대로 고쳐서 쓴다", b: "알겠다고는 하는데 또 자기 방식대로 한다", tA: "T1", tB: "T4" },
+{ q: "시험에서 실수는?", a: "거의 안 하지만 시간이 모자라다", b: "항상 1~2개는 꼭 실수한다", tA: "T3", tB: "T5" },
+{ q: "단어를 외울 때 아이는?", a: "정확하게 여러 번 확인하며 외운다", b: "감으로 외우고 넘어간다", tA: "T3", tB: "T5" },
+{ q: "숙제가 많아지면 아이는?", a: "힘들어도 일단 다 하려고 한다", b: "부담돼서 대충 하거나 미룬다", tA: "T1", tB: "T2" },
+{ q: "가장 자주 듣는 피드백은?", a: "“성실한데 방향이 좀 아쉬워”", b: "“머리는 좋은데 태도가 아쉬워”", tA: "T1", tB: "T2" },
+{ q: "수업 시간에 아이는?", a: "선생님 말에 따라가며 적는다", b: "나 혼자 이해한 대로 정리한다", tA: "T1", tB: "T4" },
+{ q: "문제 풀 때 아이는?", a: "틀릴까 봐 다시 한 번 더 본다", b: "맞았을 것 같으면 바로 넘긴다", tA: "T3", tB: "T5" },
+{ q: "선생님이 고치라고 하면?", a: "고친다", b: "속으로는 “내가 맞는 것 같은데…” 한다", tA: "T1", tB: "T4" },
+{ q: "공부할 때 아이의 모습은?", a: "오래 앉아 있는데 진도가 느리다", b: "진도는 빠른데 정확하지는 않다", tA: "T3", tB: "T5" },
+{ q: "숙제를 깜빡한 날 아이는?", a: "다음엔 더 잘하려고 노력한다", b: "“한 번쯤이야” 하고 넘긴다", tA: "T1", tB: "T2" },
+{ q: "문제를 틀리면 아이는?", a: "왜 틀렸는지 다 적어본다", b: "답만 보고 넘어간다", tA: "T3", tB: "T2" },
+{ q: "선생님이 알려준 방법보다?", a: "선생님 방법이 더 편하다", b: "내 방식이 더 편하다", tA: "T1", tB: "T4" },
+{ q: "시험 점수가 떨어졌을 때?", a: "실수가 많았다고 느낀다", b: "시간이 부족했다고 느낀다", tA: "T5", tB: "T3" },
+{ q: "공부 계획이 없으면 아이는?", a: "무엇부터 할지 잘 모르겠다", b: "하고 싶은 것부터 한다", tA: "T1", tB: "T4" },
+{ q: "숙제를 제출할 때?", a: "끝까지 다 맞추고 제출한다", b: "일단 제출하는 데 의미를 둔다", tA: "T3", tB: "T2" },
+{ q: "문법 문제를 풀 때?", a: "규칙을 정확히 외워서 푼다", b: "느낌(감)으로 푼다", tA: "T1", tB: "T5" },
+{ q: "가장 아이와 비슷한 말은?", a: "“열심히는 하는데 성적이 안 올라.”", b: "“잘하는데 실수 때문에 점수가 떨어져.”", tA: "T1", tB: "T5" }
+];
+
+// [데이터 2] 결과 콘텐츠 (이미지 URL 포함)
+const resultData = {
+    "T1": {
+        code: "T1 TYPE",
+        name: "성실하지만 가이드가 필요한 아이",
+        quote: "“집에서는 책상에 오래 앉아 있는데 성적이 안 올라요.”",
+        imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Buddy&clothing=blazerAndShirt&glasses=round&face=smile", // 안경, 단정함
+        diagnosis: "이 아이는 놀라울 만큼 성실합니다. 다만 ‘어떻게’ 해야 하는지 방향이 없어서 헛힘을 쓰고 있을 가능성이 큽니다. 재능보다 ‘정확한 방향 제시’가 가장 시급합니다.",
+        prescription: "혼자 노력하는 공부에서 ‘관리받으며 성장하는 공부’로 바꿔야 합니다. 작은 숙제 하나까지도 구조화된 가이드가 필요합니다.",
+        online: { program: "숙제관리 빡센반", sub: "숙제 누락 0% · 공부 순서 고정" },
+        offline: { program: "단어 챌린지 (1개)", sub: "욕심내지 말고, 딱 하나를 매일 해내는 습관부터!" }
+    },
+    "T2": {
+        code: "T2 TYPE",
+        name: "머리는 좋은데 대충하는 아이",
+        quote: "“머리는 좋은데 숙제를 너무 대충 해와요.”",
+        imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Phil&clothing=hoodie&face=calm", // 후드티, 여유로움
+        diagnosis: "이해력과 지능은 충분합니다. 하지만 과제 부담이 커지면 뇌는 알면서도 손은 대충 넘어가 버리는 회피 성향이 있습니다.",
+        prescription: "강하게 밀어붙일수록 더 대충하게 됩니다. 학습 부담을 줄이고, 성공 경험을 차곡차곡 쌓아 ‘공부 효능감’을 높여야 합니다.",
+        online: { program: "단과반 (스며드는 반)", sub: "부담 없이 공부 감각 깨우기" },
+        offline: { program: "단어 + 원서 챌린지 (2개)", sub: "외우기(암기)와 읽기(사고)를 같이 해야 태도가 바뀝니다." }
+    },
+    "T3": {
+        code: "T3 TYPE",
+        name: "꼼꼼하지만 속도가 느린 아이",
+        quote: "“틀리는 건 없는데 항상 시간이 모자라요.”",
+        imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Dot&clothing=shirt&glasses=square&face=serious", // 셔츠, 진지함
+        diagnosis: "정확함이라는 귀한 무기를 가졌지만, 너무 신중해서 시험이라는 ‘시간의 벽’ 앞에서 자주 무너집니다.",
+        prescription: "이제는 ‘틀리지 않는 공부’에서 ‘시간 안에 완성하는 공부’로 넘어가야 합니다. 강약을 조절하며 속도를 붙이는 훈련이 필요합니다.",
+        online: { program: "강약조절 주 2회반", sub: "정확도 유지 + 속도 훈련 병행" },
+        offline: { program: "원서 + 영어신문 챌린지 (2개)", sub: "빠르게 읽고 판단하는 ‘처리 속도’ 훈련이 핵심!" }
+    },
+    "T4": {
+        code: "T4 TYPE",
+        name: "감각은 좋은데 피드백 안 듣는 아이",
+        quote: "“자기 방식만 고집해서 말을 안 들어요.”",
+        imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Bella&clothing=tee&face=cute", // 개성있는 모습
+        diagnosis: "언어적 감각이 탁월하지만, 자기 방식이 너무 확고해 피드백을 ‘잔소리’로 여길 수 있습니다. 사고의 깊이가 얕아질 위험이 있습니다.",
+        prescription: "설득하려 하기보다, 하루하루 정해진 루틴을 수행하게 하여 ‘구조적 사고’를 몸에 익히게 강제해야 합니다.",
+        online: { program: "챌린지 습관반", sub: "매일 고쳐지는 습관 구조 만들기" },
+        offline: { program: "원서 + 영어신문 (2~3개)", sub: "감으로 푸는 습관, 사고를 강제하는 루틴으로 교정해야 합니다." }
+    },
+    "T5": {
+        code: "T5 TYPE",
+        name: "다 잘하는데 실수하는 아이",
+        quote: "“다 잘하는데 시험만 보면 꼭 실수가 나와요.”",
+        imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Avery&clothing=gymShirt&face=laugh", // 활동적, 에너지
+        diagnosis: "이미 상위권에 들어갈 자격은 충분합니다. 하지만 긴장하거나 방심하는 순간 발생하는 1~2개의 실수가 등급을 가르고 있습니다.",
+        prescription: "더 많은 공부가 필요한 게 아닙니다. 자신의 실수 패턴을 파악하고 교정하여 ‘방어율’을 높이는 훈련이 필요합니다.",
+        online: { program: "종합반", sub: "유형 통합 훈련 + 실수 패턴 교정" },
+        offline: { program: "단어 + 원서 + 신문 (3개 풀세트)", sub: "실력을 넘어 ‘실수하지 않는 시스템’을 완성할 단계입니다." }
+    }
+};
+
+let currentQuestion = 0;
+let scores = { T1: 0, T2: 0, T3: 0, T4: 0, T5: 0 };
+let selectedMode = "";
+let finalType = "";
+
+// 1. 테스트 시작
+function startTest() {
+    document.getElementById('start-screen').classList.remove('active');
+    document.getElementById('question-screen').classList.add('active');
+    showQuestion();
+}
+
+// 2. 질문 표시
+function showQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById('q-number').innerText = `Q${currentQuestion + 1} / ${questions.length}`;
+    document.getElementById('question').innerText = q.q;
+    document.getElementById('btn-a').innerText = q.a;
+    document.getElementById('btn-b').innerText = q.b;
+
+    const progressPercent = ((currentQuestion + 1) / questions.length) * 100;
+    document.getElementById('progress').style.width = `${progressPercent}%`;
+}
+
+// 3. 답변 선택
+function selectOption(choice) {
+    const q = questions[currentQuestion];
+    if (choice === 'A') scores[q.tA]++;
+    else scores[q.tB]++;
+
+    currentQuestion++;
+    if (currentQuestion < questions.length) {
+        showQuestion();
+    } else {
+        calcResultType();
+        document.getElementById('question-screen').classList.remove('active');
+        document.getElementById('mode-screen').classList.add('active');
+    }
+}
+
+// 4. 결과 계산
+function calcResultType() {
+    let maxScore = -1;
+    let type = "T1";
+    for (const [key, value] of Object.entries(scores)) {
+        if (value > maxScore) {
+            maxScore = value;
+            type = key;
+        }
+    }
+    finalType = type;
+}
+
+// 5. 모드 선택
+function selectMode(mode) {
+    selectedMode = mode;
+    document.getElementById('mode-screen').classList.remove('active');
+    document.getElementById('loading-screen').classList.add('active');
+
+    // 로딩 후 결과 준비
+    setTimeout(() => {
+        prepareResult();
+    }, 2000);
+}
+
+// 6. 결과 화면 준비 (블러 상태)
+function prepareResult() {
+    document.getElementById('loading-screen').classList.remove('active');
+    document.getElementById('result-screen').classList.add('active');
+
+    document.getElementById('gate-overlay').style.display = 'block';
+    document.getElementById('result-content').classList.add('blurred');
+
+    const data = resultData[finalType];
+    const programInfo = selectedMode === 'online' ? data.online : data.offline;
+    const ctaText = selectedMode === 'online' ? "온라인 수업 상담 신청하기" : "오프라인 챌린지 상담 신청하기";
+
+    document.getElementById('result-img').src = data.imgUrl;
+    document.getElementById('result-code').innerText = data.code;
+    document.getElementById('result-title').innerText = data.name;
+    document.getElementById('result-quote').innerText = data.quote;
+    document.getElementById('result-diagnosis').innerText = data.diagnosis;
+    document.getElementById('result-prescription').innerText = data.prescription;
+    document.getElementById('result-program').innerText = programInfo.program;
+    document.getElementById('result-sub-program').innerText = programInfo.sub;
+    document.getElementById('cta-button').innerText = ctaText;
+
+    // 점수 차트 업데이트
+    const maxPossibleScore = 10; // 최대 점수 (대략적인 값)
+    setTimeout(() => {
+        for (const [key, value] of Object.entries(scores)) {
+            const barPercent = Math.min((value / maxPossibleScore) * 100, 100);
+            document.getElementById(`bar-${key.toLowerCase()}`).style.width = `${barPercent}%`;
+            document.getElementById(`val-${key.toLowerCase()}`).innerText = value;
+        }
+    }, 300);
+}
+
+// 7. 정보 입력 후 결과 잠금 해제
+function unlockResult() {
+    const name = document.getElementById('user-name').value.trim();
+    const phone = document.getElementById('user-phone').value.trim();
+    const grade = document.getElementById('user-grade').value;
+
+    if (!name || !phone || !grade) {
+        alert("정확한 분석 결과를 위해 모든 정보를 입력해주세요.");
+        return;
+    }
+
+    // 여기에 정보 수집 코드 추가 가능
+    alert(`${name} 학생의 결과를 확인합니다.`);
+
+    document.getElementById('gate-overlay').style.display = 'none';
+    document.getElementById('result-content').classList.remove('blurred');
+}
+
+// 영역별 이름 매핑
+const scoreLabels = {
+    T1: "성실/순응",
+    T2: "효율/회피",
+    T3: "정확/신중",
+    T4: "자기주도",
+    T5: "속도/직관"
+};
+
+// 모바일 여부 체크
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// 8. 상담 페이지 이동
+function goToConsult() {
+    const name = document.getElementById('user-name').value.trim();
+    const phone = document.getElementById('user-phone').value.trim();
+    const grade = document.getElementById('user-grade').value;
+    const data = resultData[finalType];
+    const programInfo = selectedMode === 'online' ? data.online : data.offline;
+
+    // 점수를 내림차순으로 정렬
+    const sortedScores = Object.entries(scores)
+        .sort((a, b) => b[1] - a[1])
+        .map(([key, value]) => `${scoreLabels[key]}: ${value}점`)
+        .join('\n');
+
+    const message = `[학습 성향 진단 상담 신청]
+
+■ 학생 정보
+학생 이름: ${name}
+연락처: ${phone}
+학년: ${grade}
+
+■ 진단 결과
+유형: ${data.name}
+희망 수업: ${selectedMode === 'online' ? '온라인' : '오프라인'}
+추천 프로그램: ${programInfo.program}
+
+■ 영역별 점수
+${sortedScores}
+
+■ 핵심 진단
+${data.diagnosis}`;
+
+    if (isMobile()) {
+        // 모바일: 메시지 자동 입력
+        const encodedMessage = encodeURIComponent(message);
+        location.href = `https://pf.kakao.com/_xnAxcrxj/chat?text=${encodedMessage}`;
+    } else {
+        // PC: 클립보드 복사 후 안내
+        navigator.clipboard.writeText(message).then(() => {
+            alert("상담 내용이 복사되었습니다!\n\n카카오톡 채팅창에서 Ctrl+V로 붙여넣기 해주세요.");
+            location.href = "https://pf.kakao.com/_xnAxcrxj/chat";
+        }).catch(() => {
+            // 클립보드 복사 실패 시 fallback
+            alert("채팅창이 열립니다. 아래 내용을 직접 입력해주세요:\n\n" + message.substring(0, 200) + "...");
+            location.href = "https://pf.kakao.com/_xnAxcrxj/chat";
+        });
+    }
+}
+
+</script>
+
+</body>
+</html>
