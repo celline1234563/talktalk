@@ -660,21 +660,51 @@ ${sortedScores}
 ■ 핵심 진단
 ${data.diagnosis}`;
 
-    if (isMobile()) {
-        // 모바일: 메시지 자동 입력
-        const encodedMessage = encodeURIComponent(message);
-        location.href = `https://pf.kakao.com/_xnAxcrxj/chat?text=${encodedMessage}`;
-    } else {
-        // PC: 클립보드 복사 후 안내
-        navigator.clipboard.writeText(message).then(() => {
-            alert("상담 내용이 복사되었습니다!\n\n카카오톡 채팅창에서 Ctrl+V로 붙여넣기 해주세요.");
-            location.href = "https://pf.kakao.com/_xnAxcrxj/chat";
-        }).catch(() => {
-            // 클립보드 복사 실패 시 fallback
-            alert("채팅창이 열립니다. 아래 내용을 직접 입력해주세요:\n\n" + message.substring(0, 200) + "...");
-            location.href = "https://pf.kakao.com/_xnAxcrxj/chat";
-        });
+    // 클립보드 복사 후 카카오톡 채널 열기
+    copyToClipboard(message).then(() => {
+        const guideMsg = isMobile()
+            ? "메시지가 복사되었습니다.\n\n채팅창에서 길게 눌러 붙여넣기 해주세요."
+            : "메시지가 복사되었습니다.\n\n채팅창에서 Ctrl+V로 붙여넣기 해주세요.";
+        alert(guideMsg);
+        location.href = "https://pf.kakao.com/_xnAxcrxj/chat";
+    }).catch(() => {
+        // 클립보드 복사 실패 시 fallback
+        alert("복사에 실패했습니다. 채팅창이 열리면 직접 내용을 입력해주세요.");
+        location.href = "https://pf.kakao.com/_xnAxcrxj/chat";
+    });
+}
+
+// 클립보드 복사 함수 (모바일 호환)
+function copyToClipboard(text) {
+    // 최신 Clipboard API 시도
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
     }
+
+    // Fallback: execCommand 사용 (구형 브라우저/모바일 대응)
+    return new Promise((resolve, reject) => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.top = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try {
+            const success = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (success) {
+                resolve();
+            } else {
+                reject();
+            }
+        } catch (err) {
+            document.body.removeChild(textarea);
+            reject(err);
+        }
+    });
 }
 
 </script>
