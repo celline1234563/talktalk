@@ -341,7 +341,7 @@
 
             <label class="form-label">학년</label>
             <select id="user-grade" class="form-select">
-                <option value="" disabled selected>학년을 선택해주세요</option>
+                <option value='"' disabled selected>학년을 선택해주세요</option>
                 <option value="초1">초등학교 1학년</option>
                 <option value="초2">초등학교 2학년</option>
                 <option value="초3">초등학교 3학년</option>
@@ -360,7 +360,7 @@
 
     <div id="result-content" class="result-content-wrapper blurred">
         <div class="result-img-container">
-            <img id="result-img" class="result-img" src="" alt="결과 캐릭터">
+            <img id="result-img" class="result-img" src='"' alt="결과 캐릭터">
         </div>
 
         <div class="result-tag" id="result-code">TYPE</div>
@@ -479,7 +479,7 @@ const resultData = {
     "T1": {
         code: "T1 TYPE",
         name: "성실하지만 가이드가 필요한 아이",
-        quote: ""집에서는 책상에 오래 앉아 있는데 성적이 안 올라요."",
+        quote: "집에서는 책상에 오래 앉아 있는데 성적이 안 올라요.",
         imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Buddy&clothing=blazerAndShirt&glasses=round&face=smile",
         diagnosis: `이 아이는 놀라울 만큼 성실합니다. 책상 앞에 앉아 있는 시간도 길고, 시키는 것은 대부분 해오려고 노력합니다. 하지만 '어떻게' 해야 하는지에 대한 명확한 방향이 없어서 헛힘을 쓰고 있을 가능성이 매우 큽니다.
 
@@ -586,7 +586,7 @@ A. 보통 4~8주 후부터 변화가 보이기 시작합니다. 첫 달은 습�
     "T2": {
         code: "T2 TYPE",
         name: "머리는 좋은데 대충하는 아이",
-        quote: ""머리는 좋은데 숙제를 너무 대충 해와요."",
+        quote: "머리는 좋은데 숙제를 너무 대충 해와요.",
         imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Phil&clothing=hoodie&face=calm",
         diagnosis: `이해력과 지능은 분명히 또래보다 뛰어납니다. 새로운 개념을 설명하면 금방 이해하고, 수업 시간에 질문하면 대답도 잘합니다. 그런데 막상 결과물을 보면 기대에 훨씬 못 미치는 경우가 많습니다.
 
@@ -697,7 +697,7 @@ A. 지금 당장은 양이 적어 보여도, 제대로 된 공부를 하면 결�
     "T3": {
         code: "T3 TYPE",
         name: "꼼꼼하지만 속도가 느린 아이",
-        quote: ""틀리는 건 없는데 항상 시간이 모자라요."",
+        quote: "틀리는 건 없는데 항상 시간이 모자라요.",
         imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Dot&clothing=shirt&glasses=square&face=serious",
         diagnosis: `정확함이라는 귀한 무기를 가진 아이입니다. 문제를 풀 때 꼼꼼하게 확인하고, 실수를 줄이려는 태도가 몸에 배어 있습니다. 틀린 문제가 있으면 왜 틀렸는지 확인하려 하고, 애매한 건 넘어가지 않습니다.
 
@@ -808,7 +808,7 @@ A. 목표는 시험 시간의 80%만 써서 다 푸는 겁니다. 나머지 20%�
     "T4": {
         code: "T4 TYPE",
         name: "감각은 좋은데 피드백 안 듣는 아이",
-        quote: ""자기 방식만 고집해서 말을 안 들어요."",
+        quote: "자기 방식만 고집해서 말을 안 들어요.",
         imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Bella&clothing=tee&face=cute",
         diagnosis: `언어적 감각이 탁월한 아이입니다. 새로운 표현을 빨리 익히고, 감으로 맞히는 일이 많습니다. 독해를 해도 전체적인 흐름을 잘 파악하고, 어휘력도 좋은 편입니다. 선생님들도 "얘는 감이 좋아"라고 말하는 경우가 많습니다.
 
@@ -919,7 +919,7 @@ A. 협상의 여지를 주지 마세요. "이건 선택이 아니야. 매일 해
     "T5": {
         code: "T5 TYPE",
         name: "다 잘하는데 실수하는 아이",
-        quote: ""다 잘하는데 시험만 보면 꼭 실수가 나와요."",
+        quote: "다 잘하는데 시험만 보면 꼭 실수가 나와요.",
         imgUrl: "https://api.dicebear.com/9.x/open-peeps/svg?seed=Avery&clothing=gymShirt&face=laugh",
         diagnosis: `이미 상위권에 들어갈 자격은 충분한 아이입니다. 실력도 있고, 이해력도 빠르고, 문제 푸는 속도도 적당합니다. 선생님들도 "얘는 잘하는 애야"라고 인정합니다. 그런데 막상 시험 결과를 보면 기대보다 낮은 경우가 많습니다.
 
@@ -1032,8 +1032,8 @@ A. 당연합니다. 상위권에서 최상위권 차이는 '실력'이 아니라
 
 let currentQuestion = 0;
 let scores = { T1: 0, T2: 0, T3: 0, T4: 0, T5: 0 };
-let selectedMode = "";
-let finalType = "";
+let selectedMode = '"';
+let finalType = '"';
 
 // 1. 테스트 시작
 function startTest() {
